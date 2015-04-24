@@ -5,6 +5,18 @@ var mongoose = require( 'mongoose' );
 
 var accounts = {"default": "1234"};
 
+var mongoose = require('mongoose');
+
+var mongoose = require('mongoose');
+mongoose.connect('mongodb://localhost/test');
+
+var db = mongoose.connection;
+db.on('error', console.error.bind(console, 'connection error:'));
+db.once('open', function (callback) {
+  // yay!
+	console.log('successful');
+});
+
 app.get('/process_signup', function(req, res) {
 	
 	var email = req.query.email;
