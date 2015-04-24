@@ -34,7 +34,8 @@ app.get('/process_login', function(req, res) {
 	*/
 	
 	if (accounts[email] === pass)
-		res.send('Login successful');
+		//res.send('Login successful');
+		res.sendFile(__dirname + '/inventory.html');
 	else
 		res.send('Login failed');
 
