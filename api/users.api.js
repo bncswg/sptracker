@@ -50,4 +50,17 @@ app.route( '/users/:email' )
 	});
 });
 
+app.route( '/users/:email/login' )
+.post( function( req, res ) {
+	var email = req.params.email;
+	var password = req.body.password;
+	
+	User.authenticate( email, password, function( success ) {
+		if ( success )
+			res.sendStatus( 200 );
+		else
+			res.sendStatus( 400 );
+	});
+})
+
 app.listen( 2000 );
