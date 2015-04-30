@@ -6,7 +6,7 @@ var userSchema = mongoose.Schema({
 	email: String,
 	password: String,
 	img: { data: Buffer, contentType: String },
-	equipments: [{ type: Number, ref: 'Equipment' }]
+	items: [{ type: Number, ref: 'Item' }]
 });
 
 userSchema.methods.censor = function censor() {

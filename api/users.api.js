@@ -1,16 +1,14 @@
-var express = require( 'express' );
 var User = require( '../model/user.model.js' );
-var bodyParser = require( 'body-parser' );
-
-var app = express();
-app.use(bodyParser.urlencoded({ extended: false }));
+var app = require( '../app.js' );
 
 app.route( '/users' )
+
 .get( function( req, res ){
 	User.findAll( function( users ) {
 		res.send( users );
 	});
 })
+
 .post( function( req, res ){
 	var name = req.body.name
 	var email = req.body.email;
@@ -23,6 +21,7 @@ app.route( '/users' )
 			res.sendStatus( 400 );
 	});
 })
+
 .delete( function( req, res ){
 	User.removeAll( function() {
 		res.sendStatus( 200 );
@@ -30,6 +29,7 @@ app.route( '/users' )
 });
 
 app.route( '/users/:email' )
+
 .get( function( req, res ){
 	var email = req.params.email;
 	User.findByEmail( email, function( user ){
@@ -40,6 +40,7 @@ app.route( '/users/:email' )
 		}
 	});
 })
+
 .delete( function( req, res ) {
 	var email = req.params.email;
 	User.removeByEmail( email, function( success ) {
@@ -61,6 +62,4 @@ app.route( '/users/:email/login' )
 		else
 			res.sendStatus( 400 );
 	});
-})
-
-app.listen( 2000 );
+});
