@@ -1,5 +1,4 @@
 var mongoose = require( 'mongoose' );
-var ObjectId = mongoose.Schema.Types.ObjectId;
 
 var userSchema = mongoose.Schema({
 	name: String,
@@ -33,6 +32,16 @@ userSchema.statics = {
 		this.findOne( { email: email }, function( err, user ) {
 			if ( err ) return console.error( err );
 			callback( user );
+		});
+	},
+	
+	removeByEmail: function( email, callback ) {
+		this.findOneAndRemove({ email: email }, function( err, user ) {
+			if ( err ) return console.error( err );
+			if ( user )
+				callback( true );
+			else
+				callback( false );
 		});
 	},
 	

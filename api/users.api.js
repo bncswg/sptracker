@@ -29,15 +29,24 @@ app.route( '/users' )
 	});
 });
 
-app.get( '/users/:email', function( req, res ){
+app.route( '/users/:email' )
+.get( function( req, res ){
 	var email = req.params.email;
-
 	User.findByEmail( email, function( user ){
 		if ( user ) {
 			res.send( user );
 		} else {
 			res.sendStatus( 404 );
 		}
+	});
+})
+.delete( function( req, res ) {
+	var email = req.params.email;
+	User.removeByEmail( email, function( success ) {
+		if ( success )
+			res.sendStatus( 200 );
+		else
+			res.sendStatus( 404 );
 	});
 });
 
