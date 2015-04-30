@@ -12,6 +12,16 @@ var itemSchema = mongoose.Schema({
 
 var Item = mongoose.model( 'Item', itemSchema );
 
+/*
+	interface Item {
+	  function create( info, callback );
+		function findAll( callback );
+		function removeAll( callback );
+	  function findById( id, callback );
+		function removeById( id, callback );
+	}
+*/
+
 exports.create = function create( info, callback ) {
 	if ( info.id && info.name && info.category && info.description ) {
 		var item = new Item( info );

@@ -3,12 +3,14 @@ var app = require( '../app.js' );
 
 app.route( '/items' )
 
+//GET All Items
 .get( function( req, res ){
 	Item.findAll( function( items ) {
 		res.send( items );
 	});
 })
 
+//POST New Item
 .post( function( req, res ){
 	var id = req.body.id;
 	var name = req.body.name;
@@ -23,6 +25,7 @@ app.route( '/items' )
 	});
 })
 
+//DELETE Item
 .delete( function( req, res ){
 	Item.removeAll( function() {
 		res.sendStatus( 200 );
@@ -31,6 +34,7 @@ app.route( '/items' )
 
 app.route( '/items/:id' )
 
+//GET Item By ID
 .get( function( req, res ){
 	var id = req.params.id;
 	Item.findById( id, function( item ){
@@ -42,6 +46,7 @@ app.route( '/items/:id' )
 	});
 })
 
+//DELETE Item By ID
 .delete( function( req, res ) {
 	var id = req.params.id;
 	Item.removeById( id, function( success ) {

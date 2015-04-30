@@ -27,15 +27,16 @@ userSchema.methods.checkPassword = function checkPassword( pwToCheck ) {
 
 var User = mongoose.model( 'User', userSchema );
 
-function makeSalt() {
-	return Math.round( new Date().valueOf() * Math.random() ) + '';
-}
-
-function encryptPassword( password ) {
-	var salt = makeSalt();
-	return 'SHA-256:' + salt + ':' +
-		crypto.createHash( 'sha256' ).update( salt + password ).digest( 'hex' );
-}
+/*
+	interface User {
+		function authenticate( email, password, callback );
+	  function create( info, callback );
+	  function findByEmail( email, callback );
+		function removeByEmail( email, callback );
+		function findAll( callback );
+		function removeAll( callback );
+	}
+*/
 
 exports.authenticate = function authenticate( email, password, callback ) {
 	User.findOne( { email: email }, function( err, user ) {
@@ -100,3 +101,13 @@ exports.removeAll =  function removeAll( callback ) {
 		callback();
 	});
 };
+
+function encryptPassword( password ) {
+	var salt = makeSalt();
+	return 'SHA-256:' + salt + ':' +
+		crypto.createHash( 'sha256' ).update( salt + password ).digest( 'hex' );
+		
+	function makeSalt() {
+		return Math.round( new Date().valueOf() * Math.random() ) + '';
+	}
+}
