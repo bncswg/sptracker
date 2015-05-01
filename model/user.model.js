@@ -1,12 +1,14 @@
 var mongoose = require( 'mongoose' );
 var crypto = require( 'crypto' );
+var Item = require( './item.model.js' );
+var ObjectId = mongoose.Schema.Types.ObjectId;
 
 var userSchema = mongoose.Schema({
 	name: String,
 	email: String,
 	password: String,
 	img: { data: Buffer, contentType: String },
-	items: [{ type: Number, ref: 'Item' }]
+	items: [{ type: ObjectId, ref: 'Item' }]
 });
 
 userSchema.methods.censor = function censor() {
@@ -25,10 +27,59 @@ userSchema.methods.checkPassword = function checkPassword( pwToCheck ) {
 	return ( hash == validHash );
 };
 
+userSchema.methods.checkOutItem = function checkOutItem( item, callback ) {
+	
+	var user = this;
+	
+	if ( item.user ) {
+		
+		if ( item.user.equals( user._id ) ) {
+			callback( false, 'Already checked out by the same user' );
+		} else {
+			callback( false, 'Already checked out by a different user');
+		}
+		
+	} else {
+		
+		user.update( { $addToSet: { items: item } }, function( err ) {
+			if ( err ) return console.error( err );
+			
+			item.update( { user: user }, function( err ) {
+				if ( err ) return console.error( err );
+				callback( true );
+				
+			});
+		});
+	}
+};
+
+userSchema.methods.returnItem = function returnItem( item, callback ) {
+	var user = this;
+	if ( item.user ) {
+		if ( item.user.equals( user._id ) ) {
+			
+			user.update( { $pull: { items: item } }, function( err ) {
+				if ( err ) return console.error( err );
+				item.update( { user: undefined }, function( err ) {
+					if ( err ) return console.error( err );
+					callback( true );
+				});
+			});
+			
+		} else {
+			callback( false, 'Item checked out by a different user');
+		}
+	} else {
+		callback( false, 'Item is not checked out' );
+	}
+};
+
 var User = mongoose.model( 'User', userSchema );
 
 /*
 	interface User {
+		function checkOutItem( email, id, callback );
+		function returnItem( email, id, callback );
 		function authenticate( email, password, callback );
 	  function create( info, callback );
 	  function findByEmail( email, callback );
@@ -37,6 +88,42 @@ var User = mongoose.model( 'User', userSchema );
 		function removeAll( callback );
 	}
 */
+
+exports.checkOutItem = function checkOutItem( email, id, callback ) {
+	this.findByEmail( email, function( user ) {
+		if ( !user ) {
+			callback( false, 'User does not exist' );
+		} else {
+			Item.findById( id, function( item ) {
+				if ( !item ) {
+					callback( false, 'Item does not exist' );
+				} else {
+					user.checkOutItem( item, function( success, message ) {
+							callback( success, message );
+					});
+				}
+			});
+		}
+	});
+};
+
+exports.returnItem = function returnItem( email, id, callback ) {
+	this.findByEmail( email, function( user ) {
+		if ( !user ) {
+			callback( false, 'User does not exist' );
+		} else {
+			Item.findById( id, function( item ) {
+				if ( !item ) {
+					callback( false, 'Item does not exist' );
+				} else {
+					user.returnItem( item, function( success, message ) {
+							callback( success, message );
+					});
+				}
+			});
+		}
+	});
+};
 
 exports.authenticate = function authenticate( email, password, callback ) {
 	User.findOne( { email: email }, function( err, user ) {
@@ -68,7 +155,8 @@ exports.create = function create( info, callback ) {
 exports.findByEmail = function findByEmail( email, callback ) {
 	User.findOne( { email: email }, function( err, user ) {
 		if ( err ) return console.error( err );
-		user.censor();
+		if ( user )
+			user.censor();
 		callback( user );
 	});
 };

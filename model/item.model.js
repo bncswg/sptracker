@@ -56,7 +56,7 @@ exports.findById = function findById( id, callback ) {
 };
 	
 exports.removeById = function removeById( id, callback ) {
-	Item.findOneAndRemove( { id: id }, function( err, user ) {
+	Item.findOneAndRemove( { id: id }, function( err, item ) {
 		if ( err ) return console.error( err );
 		if ( item )
 			callback( true );

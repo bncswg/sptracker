@@ -56,6 +56,34 @@ app.route( '/users/:email' )
 	});
 });
 
+//POST Check Out Item
+app.route( '/users/:email/checkout' )
+.post( function( req, res ) {
+	var email = req.params.email;
+	var id = req.body.id;
+	
+	User.checkOutItem( email, id, function( success, message ) {
+		if ( success )
+			res.sendStatus( 200 );
+		else 
+			res.status( 400 ).send( message );
+	});
+});
+
+//POST Return Item
+app.route( '/users/:email/return' )
+.post( function( req, res ) {
+	var email = req.params.email;
+	var id = req.body.id;
+	
+	User.returnItem( email, id, function( success, message ) {
+		if ( success )
+			res.sendStatus( 200 );
+		else 
+			res.status( 400 ).send( message );
+	});
+});
+
 //POST User Login
 app.route( '/users/:email/login' )
 .post( function( req, res ) {
