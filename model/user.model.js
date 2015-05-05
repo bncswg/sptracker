@@ -8,6 +8,7 @@ var userSchema = mongoose.Schema({
 	email: String,
 	password: String,
 	img: { data: Buffer, contentType: String },
+	authToken: String,
 	items: [{ type: ObjectId, ref: 'Item' }]
 });
 
@@ -78,6 +79,7 @@ var User = mongoose.model( 'User', userSchema );
 
 /*
 	interface User {
+		function findById( id, callback );
 		function checkOutItem( email, id, callback );
 		function returnItem( email, id, callback );
 		function authenticate( email, password, callback );
@@ -89,11 +91,25 @@ var User = mongoose.model( 'User', userSchema );
 	}
 */
 
+exports.findById = function findById( id, callback ) {
+	mongoose.Types.ObjectId( id );
+	User.findOne( { _id: id }, function( err, user ) {
+		if ( err ) return console.error( err );
+		if ( user )
+			user.censor();
+		callback( user );
+	});
+}
+
 exports.checkOutItem = function checkOutItem( email, id, callback ) {
+	
 	this.findByEmail( email, function( user ) {
+		
 		if ( !user ) {
 			callback( false, 'User does not exist' );
+			
 		} else {
+			
 			Item.findById( id, function( item ) {
 				if ( !item ) {
 					callback( false, 'Item does not exist' );
@@ -141,6 +157,9 @@ exports.create = function create( info, callback ) {
 	if ( info.name && info.email && info.password ) {
 		
 		info.password = encryptPassword( info.password );
+		
+		//Create auth token
+		info.authToken = crypto.createHash( 'sha256' ).update( makeSalt()).digest( 'hex' );
 		
 		var user = new User( info );
 		user.save(function ( err, user ) {
@@ -194,8 +213,8 @@ function encryptPassword( password ) {
 	var salt = makeSalt();
 	return 'SHA-256:' + salt + ':' +
 		crypto.createHash( 'sha256' ).update( salt + password ).digest( 'hex' );
-		
-	function makeSalt() {
-		return Math.round( new Date().valueOf() * Math.random() ) + '';
-	}
+}
+
+function makeSalt() {
+	return Math.round( new Date().valueOf() * Math.random() ) + '';
 }

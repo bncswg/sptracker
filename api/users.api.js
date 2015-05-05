@@ -1,6 +1,48 @@
 var User = require( '../model/user.model.js' );
 var app = require( '../app.js' );
 
+/*
+function userRequired( req, res, next ) {
+	currentUser( req, res, function() {
+		if ( !req.user ) {
+			res.sendStatus( 400 );
+			return;
+		}
+		next();
+	});
+}
+
+function currentUser( req, res, next ) {
+	var userId = req.cookies.userId;
+	var authToken = req.cookies.authToken;
+	
+	if ( !userId || !authToken ) {
+		next();
+		return;
+	}
+	
+	User.findById( userId, function( error, user ) {
+		if ( error ) {
+			next();
+			return;
+		}
+		if ( authToken == user.authToken ) {
+			req.user = user;
+			next();
+			return;
+		}
+	});
+}
+*/
+
+app.post( '/users/id', function( req, res ) {
+	var id = req.body.id;
+	
+	User.findById( id, function( user ) {
+		res.send( user );
+	});
+});
+
 app.route( '/users' )
 
 //GET All Users
@@ -12,7 +54,7 @@ app.route( '/users' )
 
 //POST New User
 .post( function( req, res ){
-	var name = req.body.name
+	var name = req.body.name;
 	var email = req.body.email;
 	var password = req.body.password;
 	
