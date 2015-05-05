@@ -1,7 +1,6 @@
 var User = require( '../model/user.model.js' );
 var app = require( '../app.js' );
 
-/*
 function userRequired( req, res, next ) {
 	currentUser( req, res, function() {
 		if ( !req.user ) {
@@ -33,7 +32,7 @@ function currentUser( req, res, next ) {
 		}
 	});
 }
-*/
+
 
 app.post( '/users/id', function( req, res ) {
 	var id = req.body.id;
