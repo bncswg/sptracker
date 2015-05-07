@@ -33,7 +33,6 @@ function currentUser( req, res, next ) {
 	});
 }
 
-
 app.post( '/users/id', function( req, res ) {
 	var id = req.body.id;
 	
@@ -57,8 +56,8 @@ app.route( '/users' )
 	var email = req.body.email;
 	var password = req.body.password;
 	
-	User.create({ name: name, email: email, password: password }, function( success ) {
-		if ( success )
+	User.create({ name: name, email: email, password: password }, function( user ) {
+		if ( user )
 			res.sendStatus( 201 );
 		else
 			res.sendStatus( 400 );
