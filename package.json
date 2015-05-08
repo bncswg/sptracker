@@ -23,6 +23,9 @@
     "express": "^4.12.3",
     "mocha": "^2.2.4",
     "mongodb": "^2.0.28",
-    "mongoose": "^4.0.2"
+    "mongoose": "^4.0.2",
+    "mongoose-auto-increment": "^4.0.0",
+    "mongoose-unique-validator": "^0.4.1",
+    "mongoose-validate": "0.0.5"
   }
 }

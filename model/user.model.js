@@ -2,31 +2,49 @@ var mongoose = require( 'mongoose' );
 var crypto = require( 'crypto' );
 var Item = require( './item.model.js' );
 var ObjectId = mongoose.Schema.Types.ObjectId;
+var validate = require('mongoose-validate');
+var uniqueValidator = require('mongoose-unique-validator');
+
+function lengthValidator (v) {
+  return v.length > 5;
+};
 
 var userSchema = mongoose.Schema({
-	name: String,
-	email: String,
-	password: String,
+	name: { type: String, required: true },
+	email: { type: String, required: true, unique: true, validate: [validate.email, 'invalid email address'] },
+	password: { type: String, required: true, validate: [lengthValidator, 'password too short'] },
 	authToken: String,
-	items: [{ type: ObjectId, ref: 'Item' }]
+	items: [{ type: ObjectId, ref: 'Item' }],
+	active: { type: Boolean, default: true }
 });
+
+userSchema.plugin(uniqueValidator);
 
 userSchema.pre( 'save', function( next ) {
 	var user = this;
+	
+	// Encrypt password if it is modified
 	if ( !user.isModified( 'password' ) ) {
 		return next();
 	}
 	user.password = this.constructor.encryptPassword( user.password );
+	
+	// Generate random authentication token
+	var salt = this.constructor.makeSalt();
+	user.authToken = crypto.createHash( 'sha256' ).update( salt ).digest( 'hex' );
+	
 	next();
 });
 
 userSchema.methods = {
 	
+	// Censor the user by setting password as undefined
 	censor: function censor() {
 		this.password = undefined;
 		return this;
 	},
 
+	// Check password by comparing hashes
 	checkPassword: function checkPassword( pwToCheck ) {
 		var pwElements = this.password.split( ':', 3 ),
 		  algo = pwElements[ 0 ], salt = pwElements[ 1 ],
@@ -36,6 +54,7 @@ userSchema.methods = {
 		return ( hash == validHash );
 	},
 
+	// Check out an item
 	checkOutItem: function checkOutItem( item, callback ) {
 		var user = this;
 		if ( item.user ) {
@@ -55,6 +74,7 @@ userSchema.methods = {
 		}
 	},
 
+	// Return an item
 	returnItem: function returnItem( item, callback ) {
 		var user = this;
 		if ( item.user ) {
@@ -78,6 +98,7 @@ userSchema.methods = {
 
 userSchema.statics = {
 	
+	// Encrypt password with SHA-256
 	encryptPassword: function encryptPassword( password ) {
 		var salt = this.makeSalt();
 		var encryptedPassword = 'SHA-256:' + salt + ':' +
@@ -85,48 +106,12 @@ userSchema.statics = {
 		return encryptedPassword;
 	},
 
+	// Make salt for hash function
 	makeSalt: function makeSalt() {
 		return Math.round( new Date().valueOf() * Math.random() ) + '';
 	},
 	
-	/*
-	checkOutItem: function checkOutItem( email, id, callback ) {
-		this.findByEmail( email, function( user ) {
-			if ( !user ) {
-				callback( false, 'User does not exist' );
-			} else {
-				Item.findById( id, function( item ) {
-					if ( !item ) {
-						callback( false, 'Item does not exist' );
-					} else {
-						user.checkOutItem( item, function( success, message ) {
-								callback( success, message );
-						});
-					}
-				});
-			}
-		});
-	},
-	
-	returnItem: function returnItem( email, id, callback ) {
-		this.findByEmail( email, function( user ) {
-			if ( !user ) {
-				callback( false, 'User does not exist' );
-			} else {
-				Item.findById( id, function( item ) {
-					if ( !item ) {
-						callback( false, 'Item does not exist' );
-					} else {
-						user.returnItem( item, function( success, message ) {
-								callback( success, message );
-						});
-					}
-				});
-			}
-		});
-	},
-	*/
-	
+	// Authenticate an email and password combination
 	authenticate: function authenticate( email, password, callback ) {
 		this.findOne( { email: email }, function( err, user ) {
 			if ( err ) return console.error( err );
@@ -138,72 +123,6 @@ userSchema.statics = {
 			}
 		});
 	}
-	
-	/*
-	findById: function findById( id, callback ) {
-		mongoose.Types.ObjectId( id );
-		this.findOne( { _id: id }, function( err, user ) {
-			if ( err ) return console.error( err );
-			if ( user )
-				user.censor();
-			callback( user );
-		});
-	},
-	*/
-	
-	/*
-	create: function create( info, callback ) {
-		if ( info.name && info.email && info.password ) {
-			info.password = this.encryptPassword( info.password );
-			info.authToken = crypto.createHash( 'sha256' ).update( this.makeSalt()).digest( 'hex' );
-			var user = new this( info );
-			user.save(function ( err, user ) {
-				if ( err ) return console.error( err );
-				callback( user );
-			});
-		} else {
-			callback();
-		}
-	},
-	*/
-	
-	/*
-	findByEmail: function findByEmail( email, callback ) {
-		this.findOne( { email: email }, function( err, user ) {
-			if ( err ) return console.error( err );
-			if ( user )
-				user.censor();
-			callback( user );
-		});
-	},
-	
-	removeByEmail: function removeByEmail( email, callback ) {
-		this.findOneAndRemove( { email: email }, function( err, user ) {
-			if ( err ) return console.error( err );
-			if ( user )
-				callback( true );
-			else
-				callback( false );
-		});
-	},
-	
-	findAll: function findAll( callback ) {
-		this.find( function( err, users ) {
-			if ( err ) return console.error( err );
-			users.forEach( function( user ) {
-				user.censor();
-			});
-			callback( users );
-		});
-	},
-	
-	removeAll: function removeAll( callback ) {
-		this.remove( function( err ) {
-			if ( err ) return console.error( err );
-			callback();
-		});
-	}
-	*/
 };
 
 module.exports = mongoose.model( 'User', userSchema );

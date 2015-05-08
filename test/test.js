@@ -15,7 +15,7 @@ describe( 'User', function() {
 	
 	describe( '#save()', function() {
 		it ( 'should create a new user with the provided name, email and password', function( done ) {
-			var user = new User({ name: 'Test', email: 'test@simplepickup.com', password: '1234' });
+			var user = new User({ name: 'Test', email: 'test@simplepickup.com', password: '123456' });
 			user.save( function( err, returnedUser ) {
 				if ( err ) return console.error( err );
 				var id = returnedUser._id;
@@ -23,7 +23,7 @@ describe( 'User', function() {
 					if ( err ) return console.error( err );
 					assert.equal( savedUser.name, 'Test' );
 					assert.equal( savedUser.email, 'test@simplepickup.com' );
-					assert.equal( true, savedUser.checkPassword( '1234' ) );
+					assert.equal( true, savedUser.checkPassword( '123456' ) );
 					done();
 				});
 			});
@@ -40,8 +40,8 @@ describe( 'User', function() {
 
 	beforeEach( function( done ) {
 		
-		testUser1 = new User({ name: 'Test1', email: 'test1@simplepickup.com', password: '1234' });
-		testUser2 = new User({ name: 'Test2', email: 'test2@simplepickup.com', password: '5678' });
+		testUser1 = new User({ name: 'Test1', email: 'test1@simplepickup.com', password: '123456' });
+		testUser2 = new User({ name: 'Test2', email: 'test2@simplepickup.com', password: '567890' });
 		
 		User.remove( {}, function( err ) {
 			if ( err ) return console.error( err );
@@ -71,9 +71,9 @@ describe( 'User', function() {
 	
 	describe( '#authenticate()', function() {
 		it( 'should return true only after a successful attempt', function( done ) {
-			User.authenticate( 'test1@simplepickup.com', '1234', function( attempt1 ) {
+			User.authenticate( 'test1@simplepickup.com', '123456', function( attempt1 ) {
 				assert.equal( true, attempt1 );
-				User.authenticate( 'test1@simplepickup.com', '5678', function( attempt2 ) {
+				User.authenticate( 'test1@simplepickup.com', '567890', function( attempt2 ) {
 					assert.equal( false, attempt2 );
 					done();
 				});
@@ -83,33 +83,6 @@ describe( 'User', function() {
 	
 });
 
-describe( 'Item', function() {
-	
-	beforeEach( function( done ) {
-		Item.remove( {}, function( err ) {
-			if ( err ) return console.error( err );
-			done();
-		});
-	});
-	
-	describe( '#save()', function() {
-		it( 'should create a new item with the provided name, category and description', function( done ) {
-			var item = new Item({ name: 'Name', category: 'Category', description: 'Description' });
-			item.save( function( err, returnedItem ) {
-				if ( err ) return console.error( err );
-				var id = returnedItem._id;
-				Item.findOne( { _id: id }, function( err, savedItem ) {
-					if ( err ) return console.error( err );
-					assert.equal( savedItem.name, 'Name' );
-					assert.equal( savedItem.category, 'Category' );
-					assert.equal( savedItem.description, 'Description' );
-					done();
-				});
-			});
-		});
-	});
-});
-
 describe( 'User', function() {
 	
 	var user_id;
@@ -117,7 +90,7 @@ describe( 'User', function() {
 	
 	beforeEach( function( done ) {
 		
-		user = new User({ name: 'User Name', email: 'User Email', password: 'User Password' });
+		user = new User({ name: 'User Name', email: 'user@email.com', password: 'User Password' });
 		item = new Item({ name: 'Item Name', category: 'Item Category', description: 'Item Description' });
 		
 		User.remove( {}, function( err ) {
@@ -203,4 +176,108 @@ describe( 'User', function() {
 		});
 	});
 	
+});
+
+describe( 'Item', function() {
+	
+	beforeEach( function( done ) {
+		Item.remove( {}, function( err ) {
+			if ( err ) return console.error( err );
+			done();
+		});
+	});
+	
+	describe( '#save()', function() {
+		it( 'should create a new item with the provided name, category and description', function( done ) {
+			var item = new Item({ name: 'Name', category: 'Category', description: 'Description' });
+			item.save( function( err, returnedItem ) {
+				if ( err ) return console.error( err );
+				var id = returnedItem._id;
+				Item.findOne( { _id: id }, function( err, savedItem ) {
+					if ( err ) return console.error( err );
+					assert.equal( savedItem.name, 'Name' );
+					assert.equal( savedItem.category, 'Category' );
+					assert.equal( savedItem.description, 'Description' );
+					done();
+				});
+			});
+		});
+	});	
+});
+
+describe( 'Item', function() {
+	
+	var user_id;
+	var item_id;
+	
+	beforeEach( function( done ) {
+		
+		user = new User({ name: 'User Name', email: 'user@email.com', password: 'User Password' });
+		item = new Item({ name: 'Item Name', category: 'Item Category', description: 'Item Description' });
+		
+		User.remove( {}, function( err ) {
+			if ( err ) return console.error( err );
+			
+			Item.remove( {}, function( err ) {
+				if ( err ) return console.error( err );
+				
+				user.save( function( err, user ) {
+					if ( err ) return console.error( err );
+					user_id = user._id;
+					
+					item.save( function( err, item ) {
+						if ( err ) return console.error( err );
+						item_id = item._id
+						done();
+					});
+				});
+			});
+		});
+	});
+	
+	describe( '#deactivate()', function() {
+		it( 'should mark item as inactive', function( done ) {
+			Item.findOne( { _id: item_id }, function( err, item ) {
+				if ( err ) return console.error( err );
+				assert.equal( true, item.active );
+				item.deactivate( function() {
+						assert.equal( false, item.active );
+						done();
+				});
+			});
+		});
+	
+		it( 'should call returnItem', function( done ) {
+			
+			Item.findOne( { _id: item_id }, function( err, item ) {
+				if ( err ) return console.error( err );
+				User.findOne( { _id: user_id }, function( err, user ) {
+					if ( err ) return console.error( err );
+				
+					user.checkOutItem( item, function( success, msg ) {
+						
+						Item.findOne( { _id: item_id }, function( err, item ) {
+							if ( err ) return console.error( err );
+							User.findOne( { _id: user_id }, function( err, user ) {
+								if ( err ) return console.error( err );
+								
+								assert.equal( 1, user.items.length );
+								
+								item.deactivate( function() {
+								
+									User.findOne( { _id: user_id }, function( err, user ) {
+										if ( err ) return console.error( err );
+										
+										assert.equal( 0, user.items.length );
+									
+										done();
+									});
+								});
+							});
+						});			
+					});
+				});
+			});
+		});
+	});
 });
