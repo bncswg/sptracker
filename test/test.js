@@ -1,8 +1,8 @@
 var should = require( 'should' );
 var assert = require( "assert" );
-var mongoose = require( 'mongoose' );
-var User = require( '../model/user.model.js' );
 require( '../app.js' );
+var User = require( '../model/user.model.js' );
+var Item = require( '../model/item.model.js' );
 
 describe( 'User', function() {
 	
@@ -81,7 +81,126 @@ describe( 'User', function() {
 		});
 	});
 	
-	
-		
 });
 
+describe( 'Item', function() {
+	
+	beforeEach( function( done ) {
+		Item.remove( {}, function( err ) {
+			if ( err ) return console.error( err );
+			done();
+		});
+	});
+	
+	describe( '#save()', function() {
+		it( 'should create a new item with the provided name, category and description', function( done ) {
+			var item = new Item({ name: 'Name', category: 'Category', description: 'Description' });
+			item.save( function( err, returnedItem ) {
+				if ( err ) return console.error( err );
+				var id = returnedItem._id;
+				Item.findOne( { _id: id }, function( err, savedItem ) {
+					if ( err ) return console.error( err );
+					assert.equal( savedItem.name, 'Name' );
+					assert.equal( savedItem.category, 'Category' );
+					assert.equal( savedItem.description, 'Description' );
+					done();
+				});
+			});
+		});
+	});
+});
+
+describe( 'User', function() {
+	
+	var user_id;
+	var item_id;
+	
+	beforeEach( function( done ) {
+		
+		user = new User({ name: 'User Name', email: 'User Email', password: 'User Password' });
+		item = new Item({ name: 'Item Name', category: 'Item Category', description: 'Item Description' });
+		
+		User.remove( {}, function( err ) {
+			if ( err ) return console.error( err );
+			
+			Item.remove( {}, function( err ) {
+				if ( err ) return console.error( err );
+				
+				user.save( function( err, user ) {
+					if ( err ) return console.error( err );
+					user_id = user._id;
+					
+					item.save( function( err, item ) {
+						if ( err ) return console.error( err );
+						item_id = item._id
+						done();
+					});
+				});
+			});
+		});
+	});
+	
+	describe( '#checkOutItem()', function() {
+		it( 'should update user.items and item.user', function( done ) {
+			
+			//Find
+			User.findOne( { _id: user_id }, function( err, user ) {
+				if ( err ) return console.error( err );
+				Item.findOne( { _id: item_id }, function( err, item ) {
+					if ( err ) return console.error( err );
+					
+					//Check Out Item
+					user.checkOutItem( item, function( success, msg ) {
+						
+						//Update
+						User.findOne( { _id: user_id }, function( err, user ) {
+							if ( err ) return console.error( err );
+							Item.findOne( { _id: item_id }, function( err, item ) {
+								if ( err ) return console.error( err );
+								
+								//Assert
+								assert.equal(1, user.items.length);
+								assert.equal(true, item_id.equals(user.items[0]));
+								assert.equal(true, user_id.equals(item.user));
+						
+								done();
+							});
+						});
+					});
+				});
+			});
+		});
+	});
+	
+	describe( '#returnItem()', function() {
+		it( 'should update user.items and item.user', function( done ) {
+			
+			//Find
+			User.findOne( { _id: user_id }, function( err, user ) {
+				if ( err ) return console.error( err );
+				Item.findOne( { _id: item_id }, function( err, item ) {
+					if ( err ) return console.error( err );
+					
+					//Return Item
+					user.returnItem( item, function( success, msg ) {
+						
+						//Update
+						User.findOne( { _id: user_id }, function( err, user ) {
+							if ( err ) return console.error( err );
+							Item.findOne( { _id: item_id }, function( err, item ) {
+								if ( err ) return console.error( err );
+								
+								//Assert
+								assert.equal(0, user.items.length);
+								assert.equal(null, item.user);
+						
+								done();
+							});
+						});
+					});
+				});
+			});
+		});
+	});
+	
+});

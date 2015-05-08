@@ -10,18 +10,9 @@ var itemSchema = mongoose.Schema({
 	user: { type: ObjectId, ref: 'User' }
 });
 
-var Item = mongoose.model( 'Item', itemSchema );
+module.exports = mongoose.model( 'Item', itemSchema );
 
 /*
-	interface Item {
-	  function create( info, callback );
-		function findAll( callback );
-		function removeAll( callback );
-	  function findById( id, callback );
-		function removeById( id, callback );
-	}
-*/
-
 exports.create = function create( info, callback ) {
 	if ( info.id && info.name && info.category && info.description ) {
 		var item = new Item( info );
@@ -64,3 +55,4 @@ exports.removeById = function removeById( id, callback ) {
 			callback( false );
 	});
 };
+*/

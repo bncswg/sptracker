@@ -89,6 +89,7 @@ userSchema.statics = {
 		return Math.round( new Date().valueOf() * Math.random() ) + '';
 	},
 	
+	/*
 	checkOutItem: function checkOutItem( email, id, callback ) {
 		this.findByEmail( email, function( user ) {
 			if ( !user ) {
@@ -124,6 +125,7 @@ userSchema.statics = {
 			}
 		});
 	},
+	*/
 	
 	authenticate: function authenticate( email, password, callback ) {
 		this.findOne( { email: email }, function( err, user ) {
