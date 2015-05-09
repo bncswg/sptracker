@@ -1,10 +1,12 @@
-var should = require( 'should' );
 var assert = require( "assert" );
 require( '../app.js' );
 var User = require( '../model/user.model.js' );
 var Item = require( '../model/item.model.js' );
 
 describe( 'User', function() {
+	
+	var testUserInfo1 = { name: 'Test1', email: 'test1@simplepickup.com', password: '123456' };
+	var testUserInfo2 = { name: 'Test2', email: 'test2@simplepickup.com', password: '123456' };
 	
 	beforeEach( function( done ) {
 		User.remove( {}, function( err ) {
@@ -28,6 +30,118 @@ describe( 'User', function() {
 				});
 			});
 		});
+		
+		it ( 'should require name', function( done ) {
+			var user = new User({ email: 'test@simplepickup.com', password: '123456' });
+			user.save( function ( err, user ) {
+				assert.equal( 'ValidationError', err.name );
+				done();
+			});
+		});
+		
+		it ( 'should require email', function( done ) {
+			var user = new User({ name: 'Test', password: '123456' });
+			user.save( function ( err, user ) {
+				assert.equal( 'ValidationError', err.name );
+				done();
+			});
+		});
+		
+		it ( 'should require password', function( done ) {
+			var user = new User({ name: 'Test', email: 'test@simplepickup.com' });
+			user.save( function ( err, user ) {
+				assert.equal( 'ValidationError', err.name );
+				done();
+			});
+		});
+		
+		it ( 'should disallow multiple signups with same email', function( done ) {
+			var user1 = new User({ name: 'Test1', email: 'test@simplepickup.com', password: '123456' });
+			user1.save( function( err, user ) {
+				assert.equal( null, err );
+				var user2 = new User({ name: 'Test2', email: 'test@simplepickup.com', password: '123456' });
+				user2.save( function( err , user ) {
+					assert.equal( 'ValidationError', err.name );
+					done();
+				});
+			});
+		});
+		
+		it ( 'should only accept a valid email address', function( done ) {
+			var user = new User({ name: 'Test', email: 'test@simplepickup', password: '123456' });
+			user.save( function( err, user ) {
+				assert.equal( 'ValidationError', err.name );
+				done();
+			})
+		});
+		
+		it ( 'should disallow passwords with less than six characters', function( done ) {
+			var user = new User({ name: 'Test', email: 'test@simplepickup.com', password: '12345' });
+			user.save( function( err, user ) {
+				assert.equal( 'ValidationError', err.name );
+				done();
+			});
+		});
+		
+		it( 'should generate a different authToken each time', function( done ) {
+			var user1 = new User( testUserInfo1 );
+			var user2 = new User( testUserInfo2 );
+			var token1;
+			var token2;
+			user1.save( function( err, user1 ) {
+				if ( err ) return console.error( err );
+				token1 = user1.authToken;
+				user2.save( function( err, user2 ) {
+					if ( err ) return console.error( err );
+					token2 = user2.authToken;
+					assert.notEqual( token1, token2 );
+					done();
+				});
+			});
+		});
+		
+		it ( 'should use password hashing', function( done ) {
+			var user = new User( testUserInfo1 );
+			user.save( function( err, user ) {
+				if ( err ) return console.error( err );
+				assert.notEqual( user.password, testUserInfo1.password );
+				done();
+			});
+		});
+		
+		it( 'should generate a different password hash each time', function( done ) {
+			var user1 = new User( testUserInfo1 );
+			var user2 = new User( testUserInfo2 );
+			var hash1;
+			var hash2;
+			user1.save( function( err, user1 ) {
+				if ( err ) return console.error( err );
+				hash1 = user1.password;
+				user2.save( function( err, user2 ) {
+					if ( err ) return console.error( err );
+					hash2 = user2.password;
+					assert.notEqual( hash1, hash2 );
+					done();
+				});
+			});
+		});
+		
+		it( 'should update hash when password is changed', function( done ) {
+			var user = new User( testUserInfo1 );
+			var hash1;
+			var hash2;
+			user.save( function( err, user ) {
+				if ( err ) return console.error( err );
+				hash1 = user.password;
+				user.password = '1234567';
+				user.save( function( err, user ) {
+					hash2 = user.password;
+					assert.notEqual( hash1, hash2 );
+					done();
+				});
+			});
+		});
+		
 	});
 });
 
