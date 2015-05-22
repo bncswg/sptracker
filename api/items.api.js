@@ -1,58 +1,45 @@
 var Item = require( '../model/item.model.js' );
 var app = require( '../app.js' );
 
+//(Requires login)
 app.route( '/items' )
-
-//GET All Items
-.get( function( req, res ){
-	Item.findAll( function( items ) {
+//List all items
+.get( function( req, res ) {
+	Item.find({}, function( err, items ) {
+		if ( err ) return console.error( err );
 		res.send( items );
-	});
-})
-
-//POST New Item
-.post( function( req, res ){
-	var id = req.body.id;
-	var name = req.body.name;
-	var category = req.body.category;
-	var description = req.body.description;
-	
-	Item.create({ id: id, name: name, category: category, description: description }, function( success ) {
-		if ( success )
-			res.sendStatus( 201 );
-		else
-			res.sendStatus( 400 );
-	});
-})
-
-//DELETE Item
-.delete( function( req, res ){
-	Item.removeAll( function() {
-		res.sendStatus( 200 );
 	});
 });
 
-app.route( '/items/:id' )
+app.route( '/item' )
+//Add item (Requires admin)
+.post( function( req, res ) {
+	var name = req.body.name;
+	var category = req.body.category;
+	var description = req.body.description;
+	var item = new Item({ name: name, category: category, description: description });
+	item.save( function( err, item ) {
+		if ( err ) return console.error( err );
+	});
+});
 
-//GET Item By ID
-.get( function( req, res ){
+app.route( '/item/:id' )
+//View item (Requires login)
+.get( function( req, res ) {
 	var id = req.params.id;
-	Item.findById( id, function( item ){
-		if ( item ) {
-			res.send( item );
-		} else {
-			res.sendStatus( 404 );
-		}
+	Item.findOne({ _id: id }, function( err, item ) {
+		if ( err ) return console.error( err );
+		res.send( item );
 	});
 })
-
-//DELETE Item By ID
+//Update item (Requires admin)
+.patch( function( req, res ) {
+	
+})
+//Remove item (Requires admin)
 .delete( function( req, res ) {
 	var id = req.params.id;
-	Item.removeById( id, function( success ) {
-		if ( success )
-			res.sendStatus( 200 );
-		else
-			res.sendStatus( 404 );
+	Item.update({ _id: id }, { $set: { active: false }}, function( err ) {
+		if ( err ) return console.error( err );
 	});
 });
