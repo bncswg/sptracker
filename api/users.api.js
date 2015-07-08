@@ -63,7 +63,11 @@ app.route( '/user/register' )
 	var password = req.body.password;
 	var user = new User({ name: name, email: email, password: password });
 	user.save( function( err ) {
-		if ( err ) return console.error( err );
+		if ( err ) {
+			res.sendStatus( 400 );
+		} else {
+			res.sendStatus( 201 );
+		}
 	});
 });
 
